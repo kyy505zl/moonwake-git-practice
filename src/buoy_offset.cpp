@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
-
+//新版contourArea和boundingRect被移动到geometry.hpp里面了，所以这里windows编译要加才能运行
+//#include<opencv2/geometry.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
@@ -26,7 +27,7 @@ bool DetectRedBuoy(const cv::Mat& image, cv::Rect& buoy_box) {
     double largest_area = 200.0;
     bool found = false;
     for (const auto& contour : contours) {
-        const double area = cv::contourArea(contour);
+        const double area = cv::contourArea(contour); 
         if (area > largest_area) {
             largest_area = area;
             buoy_box = cv::boundingRect(contour);
@@ -38,23 +39,28 @@ bool DetectRedBuoy(const cv::Mat& image, cv::Rect& buoy_box) {
 
 // TODO: 计算浮漂外接框的水平中心坐标。
 int BuoyCenterX(int buoy_x, int buoy_width) {
-    (void)buoy_x;
-    (void)buoy_width;
-    return 0;  // 请替换这一行
+    return buoy_x + buoy_width / 2;
 }
 
 // TODO: 计算相对图像中心的水平像素偏移，右侧为正。
 int HorizontalOffsetPx(int buoy_center_x, int image_width) {
-    (void)buoy_center_x;
-    (void)image_width;
-    return 0;  // 请替换这一行
+    return buoy_center_x - image_width / 2;
 }
 
 // TODO: 返回 LEFT、CENTER 或 RIGHT，绝对偏移不超过 tolerance_px 时返回 CENTER。
 const char* RelativePosition(int offset_px, int tolerance_px) {
-    (void)offset_px;
-    (void)tolerance_px;
-    return "CENTER";  // 请替换这一行
+    if (std::abs(offset_px) <= tolerance_px) //abs()就是取绝对值
+    {
+        return "CENTER";
+    }
+    else if (offset_px > tolerance_px)
+    {
+        return "RIGHT";
+    }
+    else
+    {
+        return "LEFT";
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -80,11 +86,11 @@ int main(int argc, char* argv[]) {
     const char* position = RelativePosition(offset_px, 40);
 
     std::cout << "status=FOUND\n"
-              << "image_width=" << image.cols << '\n'
-              << "buoy_x=" << buoy_box.x << '\n'
-              << "buoy_width=" << buoy_box.width << '\n'
-              << "buoy_center_x=" << buoy_center_x << '\n'
-              << "offset_px=" << offset_px << '\n'
-              << "position=" << position << '\n';
+        << "image_width=" << image.cols << '\n'
+        << "buoy_x=" << buoy_box.x << '\n'
+        << "buoy_width=" << buoy_box.width << '\n'
+        << "buoy_center_x=" << buoy_center_x << '\n'
+        << "offset_px=" << offset_px << '\n'
+        << "position=" << position << '\n';
     return 0;
 }
